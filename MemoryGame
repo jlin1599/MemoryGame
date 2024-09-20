@@ -1,0 +1,205 @@
+#include "MemoryGame.hpp"
+#include <cstdlib>
+#include <iostream>
+#include <iomanip>
+#include <ctime>
+using namespace std;
+
+MemoryGame::MemoryGame() {      //4.1
+
+numPairs = 3;
+numSlots = 8;
+
+values = new string[numSlots];
+
+int random1= rand() % 1000;
+int random2= rand() % 1000;
+int random3 =rand() % 1000;
+
+
+values[0] = to_string(random1);
+values[1] = to_string(random1);
+
+values[2] = to_string(random2);
+values[3] = to_string(random2);
+
+values[4] = to_string(random3);
+values[5] = to_string(random3);
+
+for(int i = 6; i < numSlots; i++){
+     values[i] = "";
+}
+
+bShown = new bool[numSlots];
+
+for(int i = 0; i < numSlots; i++){
+     bShown[i] = false;
+}
+
+}
+
+
+MemoryGame::MemoryGame(int numPairs, int numSlots){    //4.2
+//validate formal parameter
+if(numPairs <= 0 || numSlots <= 0 ||numSlots < numPairs*2){
+     this->numPairs = 3;
+     this->numSlots = 8;
+}
+else{
+
+     this->numPairs = numPairs;
+     this->numSlots = numSlots;
+}
+
+values = new string[this->numSlots];  // current constructor 
+//int curr = rand()% 1000;
+/*values[0]= to_string(curr);
+values[1]= to_string(curr);
+curr = rand()% 1000;
+values[2]= to_string(curr);
+values[3]= to_string(curr);
+*/
+
+for(int i = 0; i < this->numPairs ; i++){
+     int curr = rand() % 1000;
+     values[i * 2] = to_string(curr);
+     values[2 * i + 1] = to_string(curr);
+}
+
+bShown = new bool[this->numSlots];
+for(int i = 0; i < this-> numSlots; i++){
+     bShown[i] = false;
+}
+
+
+}
+
+MemoryGame::MemoryGame(string* words, int size, int numSlots): MemoryGame(size, numSlots) {    //4.3
+//TODO: place your code here
+
+if(size <= 0 ||numSlots <= 0 || numSlots < size*2){
+
+     this->numSlots = size*2;
+
+}
+this->numPairs = size;
+
+
+values = new string[this->numSlots];
+
+for(int i = 0; i < size; i++){
+     values[i*2] = words[i];                 // to have word set = to 2 values, the next 2, so on
+     values[i * 2 + 1] = words[i];
+}
+bShown = new bool[this->numSlots];
+for(int i = 0; i < this->numSlots; i++){
+     bShown[i] = false;
+}
+
+}
+
+
+MemoryGame::~MemoryGame() {                                 //4.4
+//TODO: place your code here
+
+delete[] values;
+values = nullptr;
+
+delete[] bShown;
+bShown = nullptr;
+}
+
+
+void MemoryGame::randomize() {                          //4.5
+ //TODO: placeholder, do not need to implement in Task A
+int size = numSlots;
+while(size > 0){         // stops at 1
+     int index = rand()% size;
+     swap(values[index], values[size-1]);
+     size--;
+     }    
+}
+
+void printSeparatedLine(int size) {
+cout << "+"; //the first +
+//draw -----+ for (size) many times
+for (int i = 0; i < size; i++)
+cout << "-----+";
+
+cout << endl;
+}
+
+void MemoryGame::display() const {                          //4.6
+//TODO: placeholder, do not need to implement in Task A
+//print labels
+cout << " ";
+for (int i = 0; i < numSlots; i++)
+cout << setw(3) << i << setw(3) << " ";
+
+cout << endl;
+
+printSeparatedLine(numSlots);
+
+cout << "|";
+for(int i = 0; i < numSlots; i++){
+     if(bShown[i])
+          cout << setw(5) << values[i] << "|";
+     else
+          cout << "     |";
+}
+cout << endl;
+
+printSeparatedLine(numSlots);
+
+
+}
+int MemoryGame::input() const {
+    int value;
+
+    while (true) {
+        cout << "Enter an unflipped card index [0, " << numSlots - 1 << "]: ";
+        cin >> value;
+
+        if (value < 0 || value > numSlots - 1) {
+            cout << "input is not in [0," << numSlots - 1 << "]. Re-enter: ";
+        } else if (bShown[value]) {
+            cout << "The card is flipped already. Re-enter: ";
+        } else {
+            break;
+        }
+    }
+
+    return value;
+}
+void MemoryGame::play() {
+    randomize();
+    display();
+
+    int pairsFound = 0;
+    int round = 0;
+    int first;
+    int firstIndex = -1;
+    while (pairsFound < numPairs){
+        round++;
+        cout << "Round " << round << ":" << endl;
+        int index = input();
+
+        if(firstIndex == -1){
+            firstIndex = index;
+            bShown[firstIndex] = true;
+            display();
+        }else{
+            if (values[firstIndex] == values[index] && firstIndex != index && !bShown[index] && !values[firstIndex].empty() && !values[index].empty()){
+                bShown[index] = true;
+                pairsFound++;
+                cout << "You found a pair!";
+                display();
+            }else{
+                bShown[firstIndex] = false;
+                cout << "No Match";
+                display();
+            }
+            firstIndex = -1;
+        }
+    }
+}
